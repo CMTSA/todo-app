@@ -5,6 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Todo App</title>
   <style>
+    :root {
+      --bg-page: #f0f2f5;
+      --bg-container: #ffffff;
+      --shadow-container: rgba(0, 0, 0, 0.1);
+      --color-heading: #1a1a2e;
+      --color-text: #333333;
+      --color-text-muted: #aaaaaa;
+      --border-input: #e0e0e0;
+      --bg-todo-item: #f8f8ff;
+      --border-todo-item: #e8e8f0;
+      --bg-todo-completed: #f5f5f5;
+      --border-todo-completed: #e0e0e0;
+      --color-text-completed: #aaaaaa;
+      --bg-delete-hover: #ffeaea;
+      --color-delete-hover: #990000;
+    }
+
+    :root[data-theme="dark"] {
+      --bg-page: #0f1117;
+      --bg-container: #1e2130;
+      --shadow-container: rgba(0, 0, 0, 0.4);
+      --color-heading: #e8e8f0;
+      --color-text: #d0d0e0;
+      --color-text-muted: #666680;
+      --border-input: #3a3d50;
+      --bg-todo-item: #262a3d;
+      --border-todo-item: #3a3d50;
+      --bg-todo-completed: #1e2130;
+      --border-todo-completed: #2e3145;
+      --color-text-completed: #555570;
+      --bg-delete-hover: #3d1e1e;
+      --color-delete-hover: #ff6b6b;
+    }
+
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -13,28 +47,51 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
+      background: var(--bg-page);
       display: flex;
       justify-content: center;
       padding: 60px 16px;
       min-height: 100vh;
+      transition: background 0.3s;
     }
 
     .container {
-      background: #fff;
+      background: var(--bg-container);
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 20px var(--shadow-container);
       padding: 32px;
       width: 100%;
       max-width: 480px;
       height: fit-content;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
     }
 
     h1 {
       font-size: 1.8rem;
-      color: #1a1a2e;
-      margin-bottom: 24px;
-      text-align: center;
+      color: var(--color-heading);
+      transition: color 0.3s;
+    }
+
+    #theme-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      line-height: 1;
+      transition: background 0.2s;
+    }
+
+    #theme-toggle:hover {
+      background: var(--border-input);
     }
 
     .input-row {
@@ -46,15 +103,21 @@
     #todo-input {
       flex: 1;
       padding: 10px 14px;
-      border: 2px solid #e0e0e0;
+      border: 2px solid var(--border-input);
       border-radius: 8px;
       font-size: 1rem;
       outline: none;
-      transition: border-color 0.2s;
+      background: var(--bg-container);
+      color: var(--color-text);
+      transition: border-color 0.2s, background 0.3s, color 0.3s;
     }
 
     #todo-input:focus {
       border-color: #6c63ff;
+    }
+
+    #todo-input::placeholder {
+      color: var(--color-text-muted);
     }
 
     #add-btn {
@@ -84,17 +147,18 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #f8f8ff;
-      border: 1px solid #e8e8f0;
+      background: var(--bg-todo-item);
+      border: 1px solid var(--border-todo-item);
       border-radius: 8px;
       padding: 12px 14px;
       gap: 12px;
+      transition: background 0.3s, border-color 0.3s;
     }
 
     .todo-text {
       flex: 1;
       font-size: 1rem;
-      color: #333;
+      color: var(--color-text);
       word-break: break-word;
       cursor: pointer;
       user-select: none;
@@ -103,12 +167,12 @@
 
     .todo-item.completed .todo-text {
       text-decoration: line-through;
-      color: #aaa;
+      color: var(--color-text-completed);
     }
 
     .todo-item.completed {
-      background: #f5f5f5;
-      border-color: #e0e0e0;
+      background: var(--bg-todo-completed);
+      border-color: var(--border-todo-completed);
     }
 
     .delete-btn {
@@ -124,13 +188,13 @@
     }
 
     .delete-btn:hover {
-      background: #ffeaea;
-      color: #990000;
+      background: var(--bg-delete-hover);
+      color: var(--color-delete-hover);
     }
 
     .empty-msg {
       text-align: center;
-      color: #aaa;
+      color: var(--color-text-muted);
       font-size: 0.95rem;
       margin-top: 8px;
     }
@@ -138,7 +202,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>Todo List</h1>
+    <div class="header-row">
+      <h1>Todo List</h1>
+      <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
+    </div>
     <div class="input-row">
       <input
         type="text"
@@ -158,6 +225,20 @@
     const addBtn = document.getElementById('add-btn');
     const list = document.getElementById('todo-list');
     const emptyMsg = document.getElementById('empty-msg');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    // Theme persistence
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.dataset.theme = savedTheme;
+    themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.dataset.theme;
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+      themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+    });
 
     function updateEmptyMessage() {
       emptyMsg.style.display = list.children.length === 0 ? 'block' : 'none';
